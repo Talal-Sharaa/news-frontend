@@ -37,7 +37,17 @@ const AdminDashboard = () => {
     }
   };
 
-  // ... similar function handlePublisherSubmit for granting publisher role ...
+  const handlePublisherSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      await contract.grantPublisherRole(newPublisherAddress);
+      alert("Publisher role granted successfully!");
+      setNewPublisherAddress(""); // Clear input
+    } catch (error) {
+      console.error("Error granting publisher role:", error);
+      alert("Failed to grant publisher role.");
+    }
+  };
 
   return (
     <div>
@@ -52,7 +62,15 @@ const AdminDashboard = () => {
         <button type="submit">Grant Admin Role</button>
       </form>
 
-      {/* ... Form for granting publisher role ... */}
+      {/* Form for granting publisher role */}
+      <form onSubmit={handlePublisherSubmit}>
+        <input
+          value={newPublisherAddress}
+          onChange={(e) => setNewPublisherAddress(e.target.value)}
+          placeholder="Enter User's Address"
+        />
+        <button type="submit">Grant Publisher Role</button>
+      </form>
     </div>
   );
 };
