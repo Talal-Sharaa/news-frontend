@@ -3,7 +3,7 @@ import {
   getContract,
   grantAdminRole,
   grantPublisherRole,
-} from "../utils/Web3Utils";
+} from "../utils/Web3Utils.js";
 import ContractABI from "../utils/NewsPlatform.json"; // Import your contract's ABI
 
 const AdminDashboard = () => {

@@ -1,10 +1,16 @@
-import React, { useState } from "react";
-import { getContract, submitArticle } from "../utils/Web3Utils";
+import React, { useState, useEffect } from "react";
+import {
+  getContract,
+  submitArticle,
+  getProvider,
+  connectWallet,
+} from "../utils/Web3Utils.js";
 import ContractABI from "../utils/NewsPlatform.json"; // Import your contract's ABI
-import CircularProgress from "@material-ui/core/CircularProgress"; // Import CircularProgress from Material-UI
+import CircularProgress from "@mui/material/CircularProgress";
 
 const SubmitArticle = () => {
   const [contract, setContract] = useState(null);
+  const [provider, setProvider] = useState(null); // Add this line
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -12,7 +18,11 @@ const SubmitArticle = () => {
   useEffect(() => {
     const init = async () => {
       const provider = await getProvider();
-      const signer = await connectWallet();
+      setProvider(provider); // And this line
+
+      // Get the signer
+      const signer = await provider.getSigner();
+
       const newsContract = getContract(
         ContractABI.abi,
         "0x0Fb5185DCEE394B6dF6247520523783F46804Fd5",
@@ -28,7 +38,12 @@ const SubmitArticle = () => {
     setIsSubmitting(true);
 
     try {
-      await contract.submitArticle(title, content);
+      const tx = await contract.submitArticle(title, content);
+      const receipt = await tx.wait();
+      const blockNumber = receipt.blockNumber;
+      const block = await provider.getBlock(blockNumber);
+      console.log(block);
+
       alert("Article submitted successfully!");
       setTitle("");
       setContent("");
@@ -39,7 +54,6 @@ const SubmitArticle = () => {
       setIsSubmitting(false);
     }
   };
-
   return (
     <div>
       <h1>Submit New Article</h1>
@@ -63,3 +77,5 @@ const SubmitArticle = () => {
     </div>
   );
 };
+
+export default SubmitArticle;
