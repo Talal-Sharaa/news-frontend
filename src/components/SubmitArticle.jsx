@@ -7,6 +7,7 @@ import {
 } from "../utils/Web3Utils.js";
 import ContractABI from "../utils/NewsPlatform.json"; // Import your contract's ABI
 import CircularProgress from "@mui/material/CircularProgress";
+import 'water.css/out/water.css';
 
 const SubmitArticle = () => {
   const [contract, setContract] = useState(null);

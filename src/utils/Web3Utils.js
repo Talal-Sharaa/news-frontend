@@ -37,7 +37,7 @@ const grantAdminRole = async (contract, address) => {
   await tx.wait();
 };
 
-const grantPublisherRole = async (contract, address) => {
+const registerPublisher = async (contract, address) => {
   const signer = contract.signer;
   const tx = await signer.grantPublisherRole(address);
   await tx.wait();
@@ -56,6 +56,6 @@ export {
   getContract,
   submitArticle,
   grantAdminRole,
-  grantPublisherRole,
+  registerPublisher,
   getArticlesByPublisher,
 };

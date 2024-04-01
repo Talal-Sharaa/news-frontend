@@ -1,22 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getContract, getProvider } from "../utils/Web3Utils.js";
 import ContractABI from "../utils/NewsPlatform.json"; // Import your contract's ABI
+import 'water.css/out/water.css';
 
 const ArticleList = () => {
   const [contract, setContract] = useState(null);
   const [articles, setArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [publisher, setPublisher] = useState("");
+  const [provider, setProvider] = useState(null); // Add this line
 
   const fetchArticles = async () => {
     setIsLoading(true);
     try {
       const provider = await getProvider();
+      setProvider(provider); // And this line
+
+      // Get the signer
+      const signer = await provider.getSigner();
+
       const newsContract = getContract(
         ContractABI.abi,
         "0x0Fb5185DCEE394B6dF6247520523783F46804Fd5",
-        provider
-      ); // Read-only, so no signer needed
+        signer
+      );
       setContract(newsContract);
 
       const fetchedArticles = await newsContract.getArticlesByPublisher(
@@ -29,6 +36,10 @@ const ArticleList = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchArticles();
+  }, []);
 
   const handleSubmit = (event) => {
     event.preventDefault();

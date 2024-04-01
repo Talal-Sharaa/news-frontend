@@ -2,19 +2,26 @@ import React, { useState, useEffect } from "react";
 import {
   getContract,
   grantAdminRole,
-  grantPublisherRole,
+  registerPublisher,
+  getProvider,
 } from "../utils/Web3Utils.js";
 import ContractABI from "../utils/NewsPlatform.json"; // Import your contract's ABI
+import 'water.css/out/water.css';
 
 const AdminDashboard = () => {
   const [contract, setContract] = useState(null);
   const [newAdminAddress, setNewAdminAddress] = useState("");
   const [newPublisherAddress, setNewPublisherAddress] = useState("");
+  const [provider, setProvider] = useState(null); // Add this line
 
   useEffect(() => {
     const init = async () => {
       const provider = await getProvider();
-      const signer = await connectWallet();
+      setProvider(provider); // And this line
+
+      // Get the signer
+      const signer = await provider.getSigner();
+
       const newsContract = getContract(
         ContractABI.abi,
         "0x0Fb5185DCEE394B6dF6247520523783F46804Fd5",
@@ -40,7 +47,7 @@ const AdminDashboard = () => {
   const handlePublisherSubmit = async (event) => {
     event.preventDefault();
     try {
-      await contract.grantPublisherRole(newPublisherAddress);
+      await contract.registerPublisher(newPublisherAddress);
       alert("Publisher role granted successfully!");
       setNewPublisherAddress(""); // Clear input
     } catch (error) {
