@@ -24,7 +24,7 @@ const AdminDashboard = () => {
 
       const newsContract = getContract(
         ContractABI.abi,
-        "0x0Fb5185DCEE394B6dF6247520523783F46804Fd5",
+        "0xFaA5951CA9E6B66Cad222a6aE339Ad881Fd48470",
         signer
       );
       setContract(newsContract);
