@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   getContract,
-  grantAdminRole,
-  registerPublisher,
   getProvider,
 } from "../utils/Web3Utils.js";
 import ContractABI from "../utils/NewsPlatform.json"; // Import your contract's ABI
@@ -12,19 +10,16 @@ const AdminDashboard = () => {
   const [contract, setContract] = useState(null);
   const [newAdminAddress, setNewAdminAddress] = useState("");
   const [newPublisherAddress, setNewPublisherAddress] = useState("");
-  const [provider, setProvider] = useState(null); // Add this line
 
   useEffect(() => {
     const init = async () => {
       const provider = await getProvider();
-      setProvider(provider); // And this line
-
       // Get the signer
       const signer = await provider.getSigner();
 
       const newsContract = getContract(
         ContractABI.abi,
-        "0xFaA5951CA9E6B66Cad222a6aE339Ad881Fd48470",
+        "0xBFDb9909930b72356Bf8245B6e3270A1251f53cA",
         signer
       );
       setContract(newsContract);

@@ -1,32 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { getContract, getProvider } from "../utils/Web3Utils.js";
 import ContractABI from "../utils/NewsPlatform.json"; // Import your contract's ABI
 import "water.css/out/water.css";
 
 const ArticleList = () => {
-  const [contract, setContract] = useState(null);
   const [articles, setArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [publisher, setPublisher] = useState("");
-  const [provider, setProvider] = useState(null);
   const [publishers, setPublishers] = useState([]);
 
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     setIsLoading(true);
     try {
       const provider = await getProvider();
-      setProvider(provider);
 
       // Get the signer
       const signer = await provider.getSigner();
 
       const newsContract = getContract(
         ContractABI.abi,
-        "0xFaA5951CA9E6B66Cad222a6aE339Ad881Fd48470",
+        "0xBFDb9909930b72356Bf8245B6e3270A1251f53cA",
         signer
       );
-      setContract(newsContract);
-
       const fetchedArticles = await newsContract.getArticlesByPublisher(
         publisher
       );
@@ -36,23 +31,22 @@ const ArticleList = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [publisher]);
 
-  const fetchPublishers = async () => { // Separate function to fetch publishers
+  const fetchPublishers = async () => {
+    // Separate function to fetch publishers
     setIsLoading(true);
     try {
       const provider = await getProvider();
-      setProvider(provider);
 
       // Get the signer
       const signer = await provider.getSigner();
 
       const newsContract = getContract(
         ContractABI.abi,
-        "0xFaA5951CA9E6B66Cad222a6aE339Ad881Fd48470",
+        "0xBFDb9909930b72356Bf8245B6e3270A1251f53cA",
         signer
       );
-      setContract(newsContract);
 
       const fetchedPublishers = await newsContract.getAllPublishers();
       setPublishers(fetchedPublishers);
@@ -65,7 +59,7 @@ const ArticleList = () => {
 
   useEffect(() => {
     fetchArticles();
-  }, []);
+  }, [fetchArticles]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -84,13 +78,14 @@ const ArticleList = () => {
         />
         <button type="submit">Fetch Articles</button>
       </form>
-      <button onClick={fetchPublishers}>Show Publishers</button> {/* Button to fetch publishers */}
+      <button onClick={fetchPublishers}>Show Publishers</button>{" "}
+      {/* Button to fetch publishers */}
       {isLoading && <div>Loading...</div>}
       {!isLoading && articles.length === 0 && <div>No articles found.</div>}
       {!isLoading && (
         <ul>
-          {articles.map((article, index) => (
-            <li key={index}>
+          {articles.map((article) => (
+            <li key={article.id}>
               <h3>{article.title}</h3>
               <p>{article.content}</p>
             </li>
@@ -100,8 +95,8 @@ const ArticleList = () => {
       <h2>Publishers</h2>
       {!isLoading && (
         <ul>
-          {publishers.map((publisher, index) => (
-            <li key={index}>
+          {publishers.map((publisher) => (
+            <li key={publisher.id}>
               <h3>{publisher.publisherID}</h3>
             </li>
           ))}

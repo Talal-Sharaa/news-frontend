@@ -10,16 +10,6 @@ const getProvider = async () => {
   }
 };
 
-// const connectWallet = async () => {
-//   if (typeof window !== "undefined" && typeof window.ethereum !== "undefined") {
-//     await window.ethereum.request({ method: "eth_requestAccounts" });
-//     const provider = new ethers.BrowserProvider(window.ethereum);
-//     const signer = provider.getSigner();
-//     return { provider, signer };
-//   } else {
-//     throw new Error("Please install MetaMask or another Ethereum provider.");
-//   }
-// };
 const getContract = (abi, address, signer) => {
   return new ethers.Contract(address, abi, signer);
 };
