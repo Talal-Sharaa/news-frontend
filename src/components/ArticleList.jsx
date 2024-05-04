@@ -1,107 +1,117 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { getContract, getProvider } from "../utils/Web3Utils.js";
-import ContractABI from "../utils/NewsPlatform.json"; // Import your contract's ABI
+import {
+  getContract,
+  getProvider,
+  getArticlesByName,
+} from "../utils/Web3Utils.js";
+import ContractABI from "../utils/NewsPlatform.json";
 import "water.css/out/water.css";
 
 const ArticleList = () => {
-  const [articles, setArticles] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [publisher, setPublisher] = useState("");
   const [publishers, setPublishers] = useState([]);
+  const [publisherNameToAddress, setPublisherNameToAddress] = useState({});
+  const [selectedPublisher, setSelectedPublisher] = useState(null);
+  const [articles, setArticles] = useState([]);
 
-  const fetchArticles = useCallback(async () => {
-    setIsLoading(true);
+  const fetchPublishers = async () => {
     try {
       const provider = await getProvider();
-
-      // Get the signer
       const signer = await provider.getSigner();
-
-      const newsContract = getContract(
+      const contract = getContract(
         ContractABI.abi,
-        "0xBFDb9909930b72356Bf8245B6e3270A1251f53cA",
+        "0x8D4853438DbBe35e70bf6F117138951d8D4781bE",
         signer
       );
-      const fetchedArticles = await newsContract.getArticlesByPublisher(
-        publisher
+
+      const fetchedPublishers = await contract.getAllPublishers();
+      setIsLoading(true);
+
+      const publishersWithNames = await Promise.all(
+        fetchedPublishers.map(async (publisher) => {
+          const name = await contract.publisherNames(publisher.publisherID);
+          return { ...publisher, name }; // Add the name to the publisher object
+        })
+      );
+
+      // Create a mapping of publisher names to addresses
+      const mapping = {};
+      publishersWithNames.forEach((publisher) => {
+        mapping[publisher.name] = publisher.publisherID;
+      });
+
+      setPublisherNameToAddress(mapping);
+      setPublishers(publishersWithNames); // Store the publishers with their names
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching publishers:", error);
+    }
+  };
+  const fetchArticles = useCallback(async () => {
+    try {
+      if (!selectedPublisher) return; // Handle the case where no publisher is selected
+
+      const provider = await getProvider();
+      const signer = await provider.getSigner();
+      const contract = getContract(
+        ContractABI.abi,
+        "0x8D4853438DbBe35e70bf6F117138951d8D4781bE",
+        signer
+      );
+
+      const fetchedArticles = await getArticlesByName(
+        contract,
+        selectedPublisher
       );
       setArticles(fetchedArticles);
     } catch (error) {
       console.error("Error fetching articles:", error);
-    } finally {
-      setIsLoading(false);
     }
-  }, [publisher]);
-
-  const fetchPublishers = async () => {
-    // Separate function to fetch publishers
-    setIsLoading(true);
-    try {
-      const provider = await getProvider();
-
-      // Get the signer
-      const signer = await provider.getSigner();
-
-      const newsContract = getContract(
-        ContractABI.abi,
-        "0xBFDb9909930b72356Bf8245B6e3270A1251f53cA",
-        signer
-      );
-
-      const fetchedPublishers = await newsContract.getAllPublishers();
-      setPublishers(fetchedPublishers);
-    } catch (error) {
-      console.error("Error fetching publishers:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [selectedPublisher]);
+  useEffect(() => {
+    fetchPublishers();
+  }, []);
 
   useEffect(() => {
-    fetchArticles();
-  }, [fetchArticles]);
+    if (Object.keys(publisherNameToAddress).length > 0 && selectedPublisher) {
+      fetchArticles();
+    }
+  }, [publisherNameToAddress, selectedPublisher, fetchArticles]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    fetchArticles();
   };
+  useEffect(() => {
+    if (publishers.length > 0 && selectedPublisher) {
+      fetchArticles();
+    }
+  }, [publishers, selectedPublisher, fetchArticles]);
 
   return (
     <div>
       <h1>News Articles</h1>
       <form onSubmit={handleSubmit}>
-        <input
-          value={publisher}
-          onChange={(e) => setPublisher(e.target.value)}
-          placeholder="Enter Publisher Address"
-          required
-        />
+        <select
+          value={selectedPublisher}
+          onChange={(e) => setSelectedPublisher(e.target.value)}
+        >
+          <option value="">Select Publisher</option>
+          {publishers.map((publisher) => (
+            <option key={publisher.publisherID} value={publisher.name}>
+              {publisher.name}
+            </option>
+          ))}
+        </select>
         <button type="submit">Fetch Articles</button>
       </form>
-      <button onClick={fetchPublishers}>Show Publishers</button>{" "}
-      {/* Button to fetch publishers */}
-      {isLoading && <div>Loading...</div>}
-      {!isLoading && articles.length === 0 && <div>No articles found.</div>}
-      {!isLoading && (
-        <ul>
-          {articles.map((article) => (
-            <li key={article.id}>
-              <h3>{article.title}</h3>
-              <p>{article.content}</p>
-            </li>
-          ))}
-        </ul>
-      )}
-      <h2>Publishers</h2>
-      {!isLoading && (
-        <ul>
-          {publishers.map((publisher) => (
-            <li key={publisher.id}>
-              <h3>{publisher.publisherID}</h3>
-            </li>
-          ))}
-        </ul>
-      )}
+
+      {isLoading && <div>Loading Publishers...</div>}
+      {articles.map((article) => (
+        <div key={article.id}>
+          <h2>{article.title}</h2> {/* Display article ID */}
+          <p>{article.content}</p>
+        </div>
+      ))}
     </div>
   );
 };

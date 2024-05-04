@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from "react";
-import {
-  getContract,
-  getProvider,
-} from "../utils/Web3Utils.js";
+import { getContract, getProvider } from "../utils/Web3Utils.js";
 import ContractABI from "../utils/NewsPlatform.json"; // Import your contract's ABI
-import 'water.css/out/water.css';
+import "water.css/out/water.css";
 
 const AdminDashboard = () => {
   const [contract, setContract] = useState(null);
   const [newAdminAddress, setNewAdminAddress] = useState("");
   const [newPublisherAddress, setNewPublisherAddress] = useState("");
+  const [newPublisherName, setNewPublisherName] = useState("");
 
   useEffect(() => {
     const init = async () => {
@@ -19,7 +17,7 @@ const AdminDashboard = () => {
 
       const newsContract = getContract(
         ContractABI.abi,
-        "0xBFDb9909930b72356Bf8245B6e3270A1251f53cA",
+        "0x8D4853438DbBe35e70bf6F117138951d8D4781bE",
         signer
       );
       setContract(newsContract);
@@ -42,12 +40,13 @@ const AdminDashboard = () => {
   const handlePublisherSubmit = async (event) => {
     event.preventDefault();
     try {
-      await contract.registerPublisher(newPublisherAddress);
-      alert("Publisher role granted successfully!");
-      setNewPublisherAddress(""); // Clear input
+      await contract.registerPublisher(newPublisherAddress, newPublisherName);
+      alert("Publisher registered successfully!");
+      setNewPublisherAddress("");
+      setNewPublisherName("");
     } catch (error) {
-      console.error("Error granting publisher role:", error);
-      alert("Failed to grant publisher role.");
+      console.error("Error registering publisher:", error);
+      alert("Failed to register publisher.");
     }
   };
 
@@ -64,14 +63,19 @@ const AdminDashboard = () => {
         <button type="submit">Grant Admin Role</button>
       </form>
 
-      {/* Form for granting publisher role */}
+      {/* Form for registering publisher */}
       <form onSubmit={handlePublisherSubmit}>
         <input
           value={newPublisherAddress}
           onChange={(e) => setNewPublisherAddress(e.target.value)}
-          placeholder="Enter User's Address"
+          placeholder="Enter Publisher's Address"
         />
-        <button type="submit">Grant Publisher Role</button>
+        <input
+          value={newPublisherName}
+          onChange={(e) => setNewPublisherName(e.target.value)}
+          placeholder="Enter Publisher's Name"
+        />
+        <button type="submit">Register Publisher</button>
       </form>
     </div>
   );
